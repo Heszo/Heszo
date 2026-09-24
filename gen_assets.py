@@ -229,17 +229,21 @@ def frame(x, y, w, h, fill, border, dark):
             f'<rect x="{x + 8}" y="{y + 8}" width="{w - 16}" height="{h - 16}" fill="{fill}"/>')
 
 
-# personaje chibi (32x34): pelo negro ondulado, barba corta, arete, camisa escocesa
-CHAR_HEAD = [  # RLE: "Nc" = N veces el carácter c
-    "11. 10h 11.", "9. 3h 2H 9h 9.", "8. 4h 2H 10h 8.", "7. 18h 7.", "6. 20h 6.", "6. 20h 6.",
-    "6. 4h 2s 3h 3s 2h 2s 4h 6.", "6. 3h 12s 5h 6.", "6. 2h 15s 3h 6.", "6. 2h 15s 3h 6.",
-    "6. 1h 2s 3h 7s 3h 2s 2h 6.", "6. 1h 18s 1S 6.", "6. 1h 3s 2k 8s 2k 3s 1S 6.",
-    "6. 1h 3s 2k 8s 2k 3s 1S 6.", "6. 1h 2s 2l 5s 1S 3s 2l 3s 1g 6.", "7. 4s 10b 4s 7.",
-    "7. 5s 1b 6m 1b 5s 7.", "8. 2b 3s 6b 3s 2b 8.", "9. 14b 9.", "13. 6S 13.",
-]
-CHAR_PAL = {"h": "#1c1d2b", "H": "#3a3d55", "s": "#c98f6b", "S": "#a8704f", "l": "#e0aa84",
-            "k": "#1f1a24", "b": "#4a3528", "m": "#8a3f36", "g": "#e6e6e6",
-            "G": "#5f6f3a", "D": "#3e4a26", "r": "#6b3f2e", "w": "#d8d2bf", "t": "#6b6f7a", "T": "#4d5059"}
+# personaje chibi (32x34): pelo crespo con volumen, costados cortos, cejas gruesas,
+# bigote y barba en el mentón, polerón café con cuello azul y ribete rojo; sonriendo
+CHAR_ROWS = [  # RLE: "Nc" = N veces el carácter c
+    "9. 2h 2. 3h 1. 4h 2. 2h 7.", "7. 4h 1H 4h 1H 5h 1H 3h 6.", "5. 3h 1H 5h 2H 4h 1H 4h 1H 1h 5.",
+    "4. 2h 1H 6h 1H 5h 1H 5h 1H 2h 4.", "4. 5h 1H 7h 1H 4h 1H 5h 4.", "5. 3h 1H 6h 1H 6h 1H 4h 5.",
+    "6. 20h 6.", "7. 2h 3s 2h 1s 4h 3s 3h 1s 1h 5.", "7. 1h 5s 2h 8s 1h 1s 1h 6.",
+    "7. 1h 2s 2h 8s 2h 2s 1h 7.", "7. 1h 1s 1h 2s 1h 6s 1h 2s 1h 1s 1h 7.", "7. 1h 16s 1h 7.",
+    "7. 1S 2s 2k 8s 2k 2s 1S 7.", "7. 1S 1s 1k 2s 1k 6s 1k 2s 1k 1s 1S 7.", "7. 1S 1s 2p 4s 2S 4s 2p 1s 1S 7.",
+    "8. 3s 10b 3s 8.", "8. 2s 1m 1s 1b 6e 1b 1s 1m 2s 8.", "9. 1b 3s 1m 4m 1m 3s 1b 9.", "10. 2s 8b 2s 10.",
+    "11. 1s 8b 1s 11.", "13. 6S 13.",
+    "8. 1j 3n 1r 6t 1r 3n 1j 8.", "6. 3j 2n 1r 8t 1r 2n 3j 6.", "5. 5j 1n 1r 8t 1r 1n 5j 5.",
+] + ["4. 8j 1z 6t 1z 8j 4." if i % 2 else "4. 1J 1j 1J 5j 1z 6t 1z 5j 1J 1j 1J 4." for i in range(10)]
+CHAR_PAL = {"h": "#1c1a24", "H": "#3b3848", "s": "#d39a74", "S": "#b07a58", "k": "#2a1d1a",
+            "e": "#ffffff", "p": "#e8897a", "b": "#4a3528", "m": "#8a3f36",
+            "j": "#4a3230", "J": "#36241f", "n": "#2c3558", "r": "#c0392b", "z": "#9a9a9a", "t": "#8e9199"}
 
 
 def rle(row, width=32):
@@ -248,40 +252,20 @@ def rle(row, width=32):
     return out
 
 
-def plaid(c, r):
-    if c % 4 == 0 or r % 4 == 0:
-        return "D" if (c % 4 == 0 and r % 4 == 0) else "w"
-    return "r" if c % 4 == 2 else "G"
-
-
 def character_rows():
-    rows = [rle(x) for x in CHAR_HEAD]
-    rows.append(rle("8. 4G 1w 6t 1w 4G 8."))  # cuello de la camisa
-    for r in range(21, 34):
-        lo, hi = (6, 25) if r == 21 else (5, 26)
-        row = ""
-        for c in range(32):
-            if c < lo or c > hi:
-                row += "."
-            elif 13 <= c <= 18:
-                row += "T" if c == 13 else "t"
-            else:
-                row += plaid(c, r)
-        rows.append(row)
-    return rows
+    return [rle(r) for r in CHAR_ROWS]
 
 
 def character(x, y, s):
-    """Personaje animado: respira, pestañea y saluda."""
+    """Personaje animado: respira y saluda."""
     body = sprite(character_rows(), CHAR_PAL, x, y, s)
-    blink = "".join(merge([(10, 12), (11, 12), (20, 12), (21, 12)], x, y, s, CHAR_PAL["s"]))
     # brazo que saluda, dos posiciones: manga de 2 px desde el hombro y mano de 3x3
     sleeve_a = [(3 + (r - 14) // 3 + d, r) for r in range(14, 21) for d in (0, 1)] + [(6, 21)]
     arm_a = [(c, r) for c in range(2, 5) for r in range(11, 14)] + [(5, 12)]
     sleeve_b = [(2, 14), (3, 14), (3, 15), (4, 15)] + [(c, r) for c, r in sleeve_a if r >= 16]
     arm_b = [(c - 1, r) for c, r in arm_a]
-    wave = lambda hand, sl: "".join(merge(sl, x, y, s, CHAR_PAL["G"])) + "".join(merge(hand, x, y, s, CHAR_PAL["s"]))
-    return (f'<g class="breathe">{body}<g class="blinkeye">{blink}</g>'
+    wave = lambda hand, sl: "".join(merge(sl, x, y, s, CHAR_PAL["j"])) + "".join(merge(hand, x, y, s, CHAR_PAL["s"]))
+    return (f'<g class="breathe">{body}'
             f'<g class="wa">{wave(arm_a, sleeve_a)}</g><g class="wb">{wave(arm_b, sleeve_b)}</g></g>')
 
 
@@ -334,7 +318,6 @@ def skills():
 .bar{transform-box:fill-box;transform-origin:0 50%;animation:bar .9s both}@keyframes bar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
 .breathe{animation:breathe 1.6s steps(1) infinite}@keyframes breathe{50%{transform:translateY(4px)}}
-.blinkeye{opacity:0;animation:blinkeye 3.2s steps(1) infinite}@keyframes blinkeye{0%,92%{opacity:0}93%,97%{opacity:1}}
 .wa{animation:wa .5s steps(1) infinite}.wb{animation:wb .5s steps(1) infinite}
 @keyframes wa{50%{opacity:0}}@keyframes wb{0%{opacity:0}50%{opacity:1}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}.wb{opacity:0}}
