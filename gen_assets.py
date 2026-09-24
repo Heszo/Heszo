@@ -34,7 +34,7 @@ FONT = {
     ".": "00000 00000 00000 00000 00000 00000 00100", ",": "00000 00000 00000 00000 00000 00100 01000",
     "-": "00000 00000 00000 01110 00000 00000 00000", ":": "00000 00000 00100 00000 00000 00100 00000",
     "/": "00001 00001 00010 00100 01000 10000 10000", "!": "00100 00100 00100 00100 00100 00000 00100",
-    ">": "01000 00100 00010 00001 00010 00100 01000", "+": "00000 00100 00100 11111 00100 00100 00000",
+    ">": "01000 00100 00010 00001 00010 00100 01000", "+": "00000 00100 00100 11111 00100 00100 00000", "|": "00100 00100 00100 00100 00100 00100 00100",
     "(": "00010 00100 01000 01000 01000 00100 00010", ")": "01000 00100 00010 00010 00010 00100 01000",
 }
 ACCENT = {"Á": "A", "É": "E", "Í": "I", "Ó": "O", "Ú": "U"}
@@ -138,13 +138,6 @@ GULL_UP = ["k.....k", ".k...k.", "..kkk.."]
 GULL_FLAT = [".......", "kkk.kkk", "...k..."]
 PALM = ["..gg.gg..", ".g.gGg.g.", "....t....", "....t....", "...t.....", "...t.....", ".sssssss.", "sssssssss"]
 PALM_PAL = {"g": "#3f9a4a", "G": "#2d7a38", "t": "#7a4a22", "s": "#e8c77a"}
-EMBLEM = [  # sol + nube + ola (guiño a MetGeo), 16x16
-    "..........y.....", ".......y..y..y..", "........yyyy....", "......yyyyyyyy..",
-    "..y..yyyyyyyyy..", "......yywwwwyyy.", "....wwwwwwwwwyy.", "...wwwwwwwwwwwy.",
-    "..wwwwwwwwwwwww.", "..WWWWWWWWWWWWW.", "................", ".cc...cc...cc...",
-    "c..c.c..c.c..c.c", "....c....c....c.", "................", "cccccccccccccccc",
-]
-EMBLEM_PAL = {"y": "#f7b733", "w": "#ffffff", "W": "#c9d6e3", "c": "#2f7fc1"}
 
 
 # ------------------------------------------------------------------- banner
@@ -197,8 +190,8 @@ def banner():
              "</g>")
     # textos
     b.append(text_rects("BRUNO HERRERA", 40, 34, 6, "#fff6d5", "#2a1a3e"))
-    b.append(text_rects("GEOFÍSICO · CIENTÍFICO DE DATOS", 40, 98, 3, "#ffd166", "#2a1a3e"))
-    b.append(text_rects("MODELACIÓN NUMÉRICA · PIPELINES · DASHBOARDS", 40, 130, 2, "#fbe7e0", "#2a1a3e"))
+    b.append(text_rects("GEOFÍSICO | CIENTÍFICO DE DATOS", 40, 98, 3, "#ffd166", "#2a1a3e"))
+    b.append(text_rects("PIPELINES DE DATOS EN PYTHON", 40, 130, 2, "#fbe7e0", "#2a1a3e"))
     b.append(f'<g class="blink">{text_rects("> CONCEPCIÓN, CHILE", 40, 272, 2, "#fff6d5", "#0e324f")}</g>')
     b.append(text_rects("COFUNDADOR METGEO SPA", W - 40 - text_width("COFUNDADOR METGEO SPA", 2), 272, 2, "#8fd3f4", "#0e324f"))
     style = """
@@ -222,11 +215,11 @@ def banner():
 
 
 # ------------------------------------------------------------------- skills
-SKILLS = [  # (etiqueta, nivel 1-10, color) — acorde al perfil real
+SKILLS = [  # (etiqueta, nivel 1-10, color), según el CV
     ("PYTHON", 9, "#f2c14e"), ("XARRAY / NETCDF", 9, "#f2c14e"), ("PIPELINES ETL + QC", 8, "#f2c14e"),
-    ("STREAMLIT / PLOTLY", 8, "#f2c14e"), ("CLAUDE CODE", 8, "#e07a5f"), ("GIT / ACTIONS", 6, "#e07a5f"),
-    ("CROCO", 8, "#4fa3d9"), ("LINUX / HPC", 8, "#4fa3d9"), ("WRF", 6, "#4fa3d9"),
-    ("MATLAB", 8, "#4fa3d9"), ("ML SCIKIT-LEARN", 6, "#7bc47f"), ("SQL", 5, "#7bc47f"),
+    ("STREAMLIT / PLOTLY", 8, "#f2c14e"), ("SQL", 5, "#f2c14e"), ("BASH", 6, "#f2c14e"),
+    ("CROCO", 8, "#4fa3d9"), ("WRF", 6, "#4fa3d9"), ("LINUX / HPC", 8, "#4fa3d9"),
+    ("MATLAB", 8, "#4fa3d9"), ("ML SCIKIT-LEARN", 6, "#7bc47f"), ("CLAUDE CODE / OPENCODE", 8, "#e07a5f"),
 ]
 
 
@@ -234,6 +227,17 @@ def frame(x, y, w, h, fill, border, dark):
     return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{dark}"/>'
             f'<rect x="{x + 4}" y="{y + 4}" width="{w - 8}" height="{h - 8}" fill="{border}"/>'
             f'<rect x="{x + 8}" y="{y + 8}" width="{w - 16}" height="{h - 16}" fill="{fill}"/>')
+
+
+def portrait(x, y, s):
+    """Retrato pixelado (assets/retrato.png, 48x46 con paleta reducida)."""
+    from PIL import Image
+    im = Image.open(OUT / "retrato.png").convert("RGB")
+    by_col = {}
+    for r in range(im.height):
+        for c in range(im.width):
+            by_col.setdefault("#%02x%02x%02x" % im.getpixel((c, r)), []).append((c, r))
+    return "".join("".join(merge(pix, x, y, s, col)) for col, pix in by_col.items())
 
 
 def skills():
@@ -245,8 +249,8 @@ def skills():
     for x, y in [(px + 16, py + 16), (px + pw - 24, py + 16), (px + 16, py + ph - 24), (px + pw - 24, py + ph - 24)]:
         b.append(f'<rect x="{x}" y="{y}" width="8" height="8" fill="#8b5a2b"/>')
     b.append(text_rects("SE BUSCA", px + (pw - text_width("SE BUSCA", 4)) // 2, py + 34, 4, "#4a2c14"))
-    b.append(frame(px + 50, py + 80, 160, 150, "#e6f2fb", "#8b5a2b", "#4a2c14"))
-    b.append(f'<g class="float">{sprite(EMBLEM, EMBLEM_PAL, px + 66, py + 90, 8)}</g>')
+    b.append(frame(px + 50, py + 76, 160, 154, "#e6f2fb", "#8b5a2b", "#4a2c14"))
+    b.append(portrait(px + 58, py + 84, 3))
     b.append(text_rects("BRUNO H.", px + (pw - text_width("BRUNO H.", 3)) // 2, py + 246, 3, "#4a2c14"))
     b.append(text_rects("RECOMPENSA", px + (pw - text_width("RECOMPENSA", 2)) // 2, py + 278, 2, "#8b5a2b"))
     b.append(text_rects("1.970.000", px + (pw - text_width("1.970.000", 3)) // 2, py + 298, 3, "#4a2c14"))
@@ -271,7 +275,7 @@ def skills():
         b.append("".join(empty))
         # la barra llena es el estado final por defecto; la animación solo la "barre" desde la izquierda
         b.append(f'<g class="bar" style="animation-delay:{0.2 + i * 0.15:.2f}s;animation-timing-function:steps({lvl})">{"".join(full)}</g>')
-    legend = [("DATOS", "#f2c14e"), ("IA / DEV", "#e07a5f"), ("MODELACIÓN", "#4fa3d9"), ("ANÁLISIS", "#7bc47f")]
+    legend = [("LENGUAJES Y DATOS", "#f2c14e"), ("MODELACIÓN", "#4fa3d9"), ("MACHINE LEARNING", "#7bc47f"), ("DESARROLLO CON IA", "#e07a5f")]
     lx = sx + 28
     for name, col in legend:
         b.append(f'<rect x="{lx}" y="{sy + 326}" width="8" height="8" fill="{col}"/>')
@@ -279,11 +283,10 @@ def skills():
         lx += 26 + text_width(name, 1) + 24
     style = """
 .bar{transform-box:fill-box;transform-origin:0 50%;animation:bar .9s both}@keyframes bar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-.float{animation:float 2s steps(2) infinite}@keyframes float{50%{transform:translateY(-4px)}}
 .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 """
-    return svg(W, H, "".join(b), style, "Habilidades: Python, xarray, pipelines, Streamlit, Claude Code, CROCO, WRF, HPC")
+    return svg(W, H, "".join(b), style, "Cartel de se busca con retrato pixelado y panel de habilidades")
 
 
 # ---------------------------------------------------------------------- mapa

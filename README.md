@@ -1,27 +1,19 @@
 <p align="center">
-  <img src="assets/banner.svg" width="100%" alt="Bruno Herrera · Geofísico · Científico de datos · Concepción, Chile">
+  <img src="assets/banner.svg" width="100%" alt="Bruno Herrera, geofísico y científico de datos, Concepción, Chile">
 </p>
 
-Geofísico (Universidad de Concepción) y cofundador de **[MetGeo SpA](https://www.linkedin.com/company/metgeo-spa/)**.
-Construyo pipelines de datos y dashboards en Python para información ambiental: meteorología, océano y clima.
-Modelo la atmósfera y el océano con **WRF** y **CROCO** en clúster HPC y programo a diario con **Claude Code**.
+Soy geofísico de la Universidad de Concepción y cofundador de [MetGeo SpA](https://www.linkedin.com/company/metgeo-spa/). Construyo pipelines de datos en Python para información ambiental, desde la descarga y el control de calidad de series de estaciones y grillas netCDF hasta dashboards en Streamlit. Trabajo sobre el clúster NLHPC con modelos numéricos oceánicos y atmosféricos (CROCO y WRF).
+
+Para programar uso Claude Code y OpenCode, con desarrollo guiado por especificaciones (spec-driven development). Además de Python, he trabajado con MATLAB, SQL y Bash.
 
 <p align="center">
-  <img src="assets/skills.svg" width="100%" alt="Habilidades: Python, xarray/netCDF, pipelines ETL + QC, Streamlit/Plotly, Claude Code, Git/Actions, CROCO, Linux/HPC, WRF, MATLAB, scikit-learn, SQL">
+  <img src="assets/skills.svg" width="100%" alt="Cartel de se busca con mi retrato pixelado y un panel de habilidades: Python, xarray y netCDF, pipelines ETL con control de calidad, Streamlit y Plotly, SQL, Bash, CROCO, WRF, Linux y HPC, MATLAB, scikit-learn, Claude Code y OpenCode">
 </p>
 
 <p align="center">
-  <img src="assets/map.svg" width="100%" alt="Mapa de proyectos">
+  <img src="assets/map.svg" width="100%" alt="Mapa con la ruta hacia el monitor meteorológico MetGeo Concepción">
 </p>
 
-| Isla | Qué hace | Stack |
-|---|---|---|
-| 💰 [**monitor-meteo-concepcion**](https://github.com/Heszo/monitor-meteo-concepcion) · [app en línea](https://metgeo-concepcion.streamlit.app/) | Monitor meteorológico del Gran Concepción: 17 sitios observados vs. 7 modelos globales y un ensamble de 143 miembros, con verificación de pronósticos | Streamlit · pandas · GitHub Actions · Parquet |
+El proyecto del mapa es [monitor-meteo-concepcion](https://github.com/Heszo/monitor-meteo-concepcion). Compara lo observado en 17 sitios del Gran Concepción con 7 modelos globales y un ensamble de 143 miembros, y se actualiza cada hora con una GitHub Action. Se puede ver en línea en [metgeo-concepcion.streamlit.app](https://metgeo-concepcion.streamlit.app/).
 
-<p align="center">
-  <a href="https://www.linkedin.com/company/metgeo-spa/"><img src="https://img.shields.io/badge/MetGeo_SpA-LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn MetGeo"></a>
-  <a href="https://www.instagram.com/metgeo.spa/"><img src="https://img.shields.io/badge/@metgeo.spa-Instagram-E4405F?style=flat-square&logo=instagram&logoColor=white" alt="Instagram MetGeo"></a>
-  <a href="mailto:brunobastian.herrera@gmail.com"><img src="https://img.shields.io/badge/Correo-brunobastian.herrera@gmail.com-D14836?style=flat-square&logo=gmail&logoColor=white" alt="Correo"></a>
-</p>
-
-<sub>Ilustraciones en pixel art generadas con <code>gen_assets.py</code> (SVG + CSS, sin imágenes externas).</sub>
+Contacto: brunobastian.herrera@gmail.com. MetGeo está en [LinkedIn](https://www.linkedin.com/company/metgeo-spa/) y en [Instagram](https://www.instagram.com/metgeo.spa/).
