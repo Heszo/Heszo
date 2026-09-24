@@ -229,15 +229,60 @@ def frame(x, y, w, h, fill, border, dark):
             f'<rect x="{x + 8}" y="{y + 8}" width="{w - 16}" height="{h - 16}" fill="{fill}"/>')
 
 
-def portrait(x, y, s):
-    """Retrato pixelado (assets/retrato.png, 48x46 con paleta reducida)."""
-    from PIL import Image
-    im = Image.open(OUT / "retrato.png").convert("RGB")
-    by_col = {}
-    for r in range(im.height):
-        for c in range(im.width):
-            by_col.setdefault("#%02x%02x%02x" % im.getpixel((c, r)), []).append((c, r))
-    return "".join("".join(merge(pix, x, y, s, col)) for col, pix in by_col.items())
+# personaje chibi (32x34): pelo negro ondulado, barba corta, arete, camisa escocesa
+CHAR_HEAD = [  # RLE: "Nc" = N veces el carácter c
+    "11. 10h 11.", "9. 3h 2H 9h 9.", "8. 4h 2H 10h 8.", "7. 18h 7.", "6. 20h 6.", "6. 20h 6.",
+    "6. 4h 2s 3h 3s 2h 2s 4h 6.", "6. 3h 12s 5h 6.", "6. 2h 15s 3h 6.", "6. 2h 15s 3h 6.",
+    "6. 1h 2s 3h 7s 3h 2s 2h 6.", "6. 1h 18s 1S 6.", "6. 1h 3s 2k 8s 2k 3s 1S 6.",
+    "6. 1h 3s 2k 8s 2k 3s 1S 6.", "6. 1h 2s 2l 5s 1S 3s 2l 3s 1g 6.", "7. 4s 10b 4s 7.",
+    "7. 5s 1b 6m 1b 5s 7.", "8. 2b 3s 6b 3s 2b 8.", "9. 14b 9.", "13. 6S 13.",
+]
+CHAR_PAL = {"h": "#1c1d2b", "H": "#3a3d55", "s": "#c98f6b", "S": "#a8704f", "l": "#e0aa84",
+            "k": "#1f1a24", "b": "#4a3528", "m": "#8a3f36", "g": "#e6e6e6",
+            "G": "#5f6f3a", "D": "#3e4a26", "r": "#6b3f2e", "w": "#d8d2bf", "t": "#6b6f7a", "T": "#4d5059"}
+
+
+def rle(row, width=32):
+    out = "".join(tok[-1] * int(tok[:-1]) for tok in row.split())
+    assert len(out) == width, (row, len(out))
+    return out
+
+
+def plaid(c, r):
+    if c % 4 == 0 or r % 4 == 0:
+        return "D" if (c % 4 == 0 and r % 4 == 0) else "w"
+    return "r" if c % 4 == 2 else "G"
+
+
+def character_rows():
+    rows = [rle(x) for x in CHAR_HEAD]
+    rows.append(rle("8. 4G 1w 6t 1w 4G 8."))  # cuello de la camisa
+    for r in range(21, 34):
+        lo, hi = (6, 25) if r == 21 else (5, 26)
+        row = ""
+        for c in range(32):
+            if c < lo or c > hi:
+                row += "."
+            elif 13 <= c <= 18:
+                row += "T" if c == 13 else "t"
+            else:
+                row += plaid(c, r)
+        rows.append(row)
+    return rows
+
+
+def character(x, y, s):
+    """Personaje animado: respira, pestañea y saluda."""
+    body = sprite(character_rows(), CHAR_PAL, x, y, s)
+    blink = "".join(merge([(10, 12), (11, 12), (20, 12), (21, 12)], x, y, s, CHAR_PAL["s"]))
+    # brazo que saluda, dos posiciones: manga de 2 px desde el hombro y mano de 3x3
+    sleeve_a = [(3 + (r - 14) // 3 + d, r) for r in range(14, 21) for d in (0, 1)] + [(6, 21)]
+    arm_a = [(c, r) for c in range(2, 5) for r in range(11, 14)] + [(5, 12)]
+    sleeve_b = [(2, 14), (3, 14), (3, 15), (4, 15)] + [(c, r) for c, r in sleeve_a if r >= 16]
+    arm_b = [(c - 1, r) for c, r in arm_a]
+    wave = lambda hand, sl: "".join(merge(sl, x, y, s, CHAR_PAL["G"])) + "".join(merge(hand, x, y, s, CHAR_PAL["s"]))
+    return (f'<g class="breathe">{body}<g class="blinkeye">{blink}</g>'
+            f'<g class="wa">{wave(arm_a, sleeve_a)}</g><g class="wb">{wave(arm_b, sleeve_b)}</g></g>')
 
 
 def skills():
@@ -250,7 +295,11 @@ def skills():
         b.append(f'<rect x="{x}" y="{y}" width="8" height="8" fill="#8b5a2b"/>')
     b.append(text_rects("SE BUSCA", px + (pw - text_width("SE BUSCA", 4)) // 2, py + 34, 4, "#4a2c14"))
     b.append(frame(px + 50, py + 76, 160, 154, "#e6f2fb", "#8b5a2b", "#4a2c14"))
-    b.append(portrait(px + 58, py + 84, 3))
+    ix, iy = px + 58, py + 84  # interior del marco: 144x138
+    b.append(f'<rect x="{ix}" y="{iy}" width="144" height="92" fill="#4a9be8"/>'
+             f'<rect x="{ix}" y="{iy + 92}" width="144" height="46" fill="#2b6cb0"/>'
+             f'<rect x="{ix}" y="{iy + 92}" width="144" height="4" fill="#8fd3f4"/>')
+    b.append(character(ix + 8, iy + 2, 4))
     b.append(text_rects("BRUNO H.", px + (pw - text_width("BRUNO H.", 3)) // 2, py + 246, 3, "#4a2c14"))
     b.append(text_rects("RECOMPENSA", px + (pw - text_width("RECOMPENSA", 2)) // 2, py + 278, 2, "#8b5a2b"))
     b.append(text_rects("1.970.000", px + (pw - text_width("1.970.000", 3)) // 2, py + 298, 3, "#4a2c14"))
@@ -284,9 +333,13 @@ def skills():
     style = """
 .bar{transform-box:fill-box;transform-origin:0 50%;animation:bar .9s both}@keyframes bar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.breathe{animation:breathe 1.6s steps(1) infinite}@keyframes breathe{50%{transform:translateY(4px)}}
+.blinkeye{opacity:0;animation:blinkeye 3.2s steps(1) infinite}@keyframes blinkeye{0%,92%{opacity:0}93%,97%{opacity:1}}
+.wa{animation:wa .5s steps(1) infinite}.wb{animation:wb .5s steps(1) infinite}
+@keyframes wa{50%{opacity:0}}@keyframes wb{0%{opacity:0}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}.wb{opacity:0}}
 """
-    return svg(W, H, "".join(b), style, "Cartel de se busca con retrato pixelado y panel de habilidades")
+    return svg(W, H, "".join(b), style, "Cartel de se busca con mi personaje en pixel art y panel de habilidades")
 
 
 # ---------------------------------------------------------------------- mapa
