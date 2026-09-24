@@ -229,44 +229,21 @@ def frame(x, y, w, h, fill, border, dark):
             f'<rect x="{x + 8}" y="{y + 8}" width="{w - 16}" height="{h - 16}" fill="{fill}"/>')
 
 
-# personaje chibi (32x34): pelo crespo con volumen, costados cortos, cejas gruesas,
-# bigote y barba en el mentón, polerón café con cuello azul y ribete rojo; sonriendo
-CHAR_ROWS = [  # RLE: "Nc" = N veces el carácter c
-    "9. 2h 2. 3h 1. 4h 2. 2h 7.", "7. 4h 1H 4h 1H 5h 1H 3h 6.", "5. 3h 1H 5h 2H 4h 1H 4h 1H 1h 5.",
-    "4. 2h 1H 6h 1H 5h 1H 5h 1H 2h 4.", "4. 5h 1H 7h 1H 4h 1H 5h 4.", "5. 3h 1H 6h 1H 6h 1H 4h 5.",
-    "6. 20h 6.", "7. 2h 3s 2h 1s 4h 3s 3h 1s 1h 5.", "7. 1h 5s 2h 8s 1h 1s 1h 6.",
-    "7. 1h 2s 2h 8s 2h 2s 1h 7.", "7. 1h 1s 1h 2s 1h 6s 1h 2s 1h 1s 1h 7.", "7. 1h 16s 1h 7.",
-    "7. 1S 2s 2k 8s 2k 2s 1S 7.", "7. 1S 1s 1k 2s 1k 6s 1k 2s 1k 1s 1S 7.", "7. 1S 1s 2p 4s 2S 4s 2p 1s 1S 7.",
-    "8. 3s 10b 3s 8.", "8. 2s 1m 1s 1b 6e 1b 1s 1m 2s 8.", "9. 1b 3s 1m 4m 1m 3s 1b 9.", "10. 2s 8b 2s 10.",
-    "11. 1s 8b 1s 11.", "13. 6S 13.",
-    "8. 1j 3n 1r 6t 1r 3n 1j 8.", "6. 3j 2n 1r 8t 1r 2n 3j 6.", "5. 5j 1n 1r 8t 1r 1n 5j 5.",
-] + ["4. 8j 1z 6t 1z 8j 4." if i % 2 else "4. 1J 1j 1J 5j 1z 6t 1z 5j 1J 1j 1J 4." for i in range(10)]
-CHAR_PAL = {"h": "#1c1a24", "H": "#3b3848", "s": "#d39a74", "S": "#b07a58", "k": "#2a1d1a",
-            "e": "#ffffff", "p": "#e8897a", "b": "#4a3528", "m": "#8a3f36",
-            "j": "#4a3230", "J": "#36241f", "n": "#2c3558", "r": "#c0392b", "z": "#9a9a9a", "t": "#8e9199"}
-
-
-def rle(row, width=32):
-    out = "".join(tok[-1] * int(tok[:-1]) for tok in row.split())
-    assert len(out) == width, (row, len(out))
-    return out
-
-
-def character_rows():
-    return [rle(r) for r in CHAR_ROWS]
-
-
 def character(x, y, s):
-    """Personaje animado: respira y saluda."""
-    body = sprite(character_rows(), CHAR_PAL, x, y, s)
-    # brazo que saluda, dos posiciones: manga de 2 px desde el hombro y mano de 3x3
-    sleeve_a = [(3 + (r - 14) // 3 + d, r) for r in range(14, 21) for d in (0, 1)] + [(6, 21)]
-    arm_a = [(c, r) for c in range(2, 5) for r in range(11, 14)] + [(5, 12)]
-    sleeve_b = [(2, 14), (3, 14), (3, 15), (4, 15)] + [(c, r) for c, r in sleeve_a if r >= 16]
-    arm_b = [(c - 1, r) for c, r in arm_a]
-    wave = lambda hand, sl: "".join(merge(sl, x, y, s, CHAR_PAL["j"])) + "".join(merge(hand, x, y, s, CHAR_PAL["s"]))
-    return (f'<g class="breathe">{body}'
-            f'<g class="wa">{wave(arm_a, sleeve_a)}</g><g class="wb">{wave(arm_b, sleeve_b)}</g></g>')
+    """Personaje (assets/personaje.png, 48x46) que respira y pestañea."""
+    from PIL import Image
+    im = Image.open(OUT / "personaje.png").convert("RGBA")
+    by_col = {}
+    for r in range(im.height):
+        for c in range(im.width):
+            px = im.getpixel((c, r))
+            if px[3]:
+                by_col.setdefault("#%02x%02x%02x" % px[:3], []).append((c, r))
+    body = "".join("".join(merge(pix, x, y, s, col)) for col, pix in by_col.items())
+    eyes = [17, 18, 19, 25, 26, 27, 28]  # columnas de los ojos (filas 20 y 21)
+    blink = ("".join(merge([(c, 20) for c in eyes], x, y, s, "#f7b183"))
+             + "".join(merge([(c, 21) for c in eyes], x, y, s, "#2c1c1c")))
+    return f'<g class="breathe">{body}<g class="blinkeye">{blink}</g></g>'
 
 
 def skills():
@@ -283,7 +260,8 @@ def skills():
     b.append(f'<rect x="{ix}" y="{iy}" width="144" height="92" fill="#4a9be8"/>'
              f'<rect x="{ix}" y="{iy + 92}" width="144" height="46" fill="#2b6cb0"/>'
              f'<rect x="{ix}" y="{iy + 92}" width="144" height="4" fill="#8fd3f4"/>')
-    b.append(character(ix + 8, iy + 2, 4))
+    b.append(f'<clipPath id="marco"><rect x="{ix}" y="{iy}" width="144" height="138"/></clipPath>'
+             f'<g clip-path="url(#marco)">{character(ix, iy, 3)}</g>')
     b.append(text_rects("BRUNO H.", px + (pw - text_width("BRUNO H.", 3)) // 2, py + 246, 3, "#4a2c14"))
     b.append(text_rects("RECOMPENSA", px + (pw - text_width("RECOMPENSA", 2)) // 2, py + 278, 2, "#8b5a2b"))
     b.append(text_rects("1.970.000", px + (pw - text_width("1.970.000", 3)) // 2, py + 298, 3, "#4a2c14"))
@@ -317,10 +295,9 @@ def skills():
     style = """
 .bar{transform-box:fill-box;transform-origin:0 50%;animation:bar .9s both}@keyframes bar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
-.breathe{animation:breathe 1.6s steps(1) infinite}@keyframes breathe{50%{transform:translateY(4px)}}
-.wa{animation:wa .5s steps(1) infinite}.wb{animation:wb .5s steps(1) infinite}
-@keyframes wa{50%{opacity:0}}@keyframes wb{0%{opacity:0}50%{opacity:1}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important}.wb{opacity:0}}
+.breathe{animation:breathe 1.6s steps(1) infinite}@keyframes breathe{50%{transform:translateY(3px)}}
+.blinkeye{opacity:0;animation:blinkeye 3.6s steps(1) infinite}@keyframes blinkeye{0%,93%{opacity:0}94%,97%{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}.blinkeye{opacity:0}}
 """
     return svg(W, H, "".join(b), style, "Cartel de se busca con mi personaje en pixel art y panel de habilidades")
 
