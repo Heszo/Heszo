@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="assets/banner.svg" width="100%" alt="Bruno Herrera, geofísico y científico de datos, Concepción, Chile">
+  <img src="assets/banner.svg" width="100%" alt="Bruno Herrera, geofísico y Análisis de datos, Concepción, Chile">
 </p>
 
-Soy geofísico de la Universidad de Concepción y cofundador de [MetGeo SpA](https://www.linkedin.com/company/metgeo-spa/). Construyo pipelines de datos en Python para información ambiental, desde la descarga y el control de calidad de series de estaciones y grillas netCDF hasta dashboards en Streamlit. Trabajo sobre el clúster NLHPC con modelos numéricos oceánicos y atmosféricos (CROCO y WRF).
+Soy geofísico de la Universidad de Concepción y cofundador de [MetGeo SpA](https://www.linkedin.com/company/metgeo-spa/). Construyo pipelines de datos en Python para información ambiental, desde la descarga y el control de calidad de series de estaciones y grillas netCDF hasta dashboards en Streamlit. Trabajo sobre el clúster NLHPC con modelos numéricos oceánicos y atmosféricos (CROCO y WRF). Usuario de linux.
 
-Para programar uso Claude Code y OpenCode, con desarrollo guiado por especificaciones (spec-driven development). Además de Python, he trabajado con MATLAB, SQL y Bash.
+Para programar uso Claude Code y OpenCode, con desarrollo guiado por especificaciones. Además de Python, he trabajado con MATLAB, SQL y Bash.
 
 <p align="center">
   <img src="assets/skills.svg" width="100%" alt="Cartel de se busca con mi personaje en pixel art y un panel de habilidades: Python, xarray y netCDF, pipelines ETL con control de calidad, Streamlit y Plotly, SQL, Bash, CROCO, WRF, Linux y HPC, MATLAB, scikit-learn, Claude Code y OpenCode">
