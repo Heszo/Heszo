@@ -190,8 +190,7 @@ def banner():
              "</g>")
     # textos
     b.append(text_rects("BRUNO HERRERA", 40, 34, 6, "#fff6d5", "#2a1a3e"))
-    b.append(text_rects("GEOFÍSICO | ANALISIS DE DATOS | MODELOS NUMÉRICOS", 40, 98, 3, "#ffd166", "#2a1a3e"))
-    b.append(text_rects("PIPELINES DE DATOS EN PYTHON", 40, 130, 2, "#fbe7e0", "#2a1a3e"))
+    b.append(text_rects("GEOFÍSICO | ANÁLISIS DE DATOS | MODELOS NUMÉRICOS", 40, 104, 2, "#ffd166", "#2a1a3e"))
     b.append(f'<g class="blink">{text_rects("> CONCEPCIÓN, CHILE", 40, 272, 2, "#fff6d5", "#0e324f")}</g>')
     b.append(text_rects("COFUNDADOR METGEO SPA", W - 40 - text_width("COFUNDADOR METGEO SPA", 2), 272, 2, "#8fd3f4", "#0e324f"))
     style = """
@@ -211,7 +210,7 @@ def banner():
 .blink{animation:tw 1.2s steps(1) infinite}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 """
-    return svg(W, H, "".join(b), style, "Bruno Herrera: geofísico y científico de datos")
+    return svg(W, H, "".join(b), style, "Bruno Herrera: geofísico, análisis de datos y modelos numéricos")
 
 
 # ------------------------------------------------------------------- skills
