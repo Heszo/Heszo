@@ -11,9 +11,14 @@ Para programar uso Claude Code y OpenCode, con desarrollo guiado por especificac
 </p>
 
 <p align="center">
-  <img src="assets/map.svg" width="100%" alt="Mapa con la ruta hacia el monitor meteorológico MetGeo Concepción">
+  <img src="assets/map.svg" width="100%" alt="Mapa con la ruta de mis proyectos públicos">
 </p>
 
-El proyecto del mapa es [monitor-meteo-concepcion](https://github.com/Heszo/monitor-meteo-concepcion). Compara lo observado en 17 sitios del Gran Concepción con 7 modelos globales y un ensamble de 143 miembros, y se actualiza cada hora con una GitHub Action. Se puede ver en línea en [metgeo-concepcion.streamlit.app](https://metgeo-concepcion.streamlit.app/).
+Los proyectos del mapa, que se actualizan cada hora con GitHub Actions:
+
+<!-- PROYECTOS:INICIO -->
+- [monitor-meteo-concepcion](https://github.com/Heszo/monitor-meteo-concepcion): Monitor meteorológico del Gran Concepción: observado (VIPNet, METAR) vs. 7 modelos y super-ensamble de 143 miembros. En línea en [metgeo-concepcion.streamlit.app](https://metgeo-concepcion.streamlit.app/).
+- [monitor-meteo-araucania](https://github.com/Heszo/monitor-meteo-araucania): Monitor meteorológico de La Araucanía: 72 estaciones, 7 modelos globales y un super-ensamble de 143 miembros. En línea en [metgeo-araucania.streamlit.app](https://metgeo-araucania.streamlit.app/).
+<!-- PROYECTOS:FIN -->
 
 Contacto: brunobastian.herrera@gmail.com. MetGeo está en [LinkedIn](https://www.linkedin.com/company/metgeo-spa/) y en [Instagram](https://www.instagram.com/metgeo.spa/).

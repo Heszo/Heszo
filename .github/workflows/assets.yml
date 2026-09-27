@@ -1,0 +1,37 @@
+name: Actualizar mapa de proyectos
+
+# Regenera assets/*.svg y la lista de proyectos del README a partir de los
+# repos públicos con el topic "mapa-perfil". Solo hace commit si algo cambió.
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [proyecto-actualizado]
+  push:
+    branches: [main, master]
+    paths: [gen_assets.py, assets/personaje.png]
+
+permissions:
+  contents: write
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - run: python gen_assets.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit si hay cambios
+        run: |
+          git add -A assets README.md
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898099+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Actualizar mapa y lista de proyectos"
+          git push

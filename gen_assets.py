@@ -5,10 +5,24 @@ emblemas de la serie). Todo se dibuja con <rect> sobre una grilla y se anima
 con CSS dentro del SVG, que GitHub respeta al mostrarlo como <img>.
 
     python3 gen_assets.py
+
+Las islas del mapa y la lista de proyectos del README salen de los repos
+públicos con el topic TOPIC; la Action .github/workflows/assets.yml lo corre sola.
 """
+import json
+import os
+import re
+import urllib.request
 from pathlib import Path
 
 OUT = Path(__file__).parent / "assets"
+README = Path(__file__).parent / "README.md"
+USER = "Heszo"
+TOPIC = "mapa-perfil"  # los repos públicos con este topic aparecen en el mapa y en el README
+LABELS = {  # etiqueta del mapa cuando el nombre del repo no alcanza (tildes, abreviaciones)
+    "monitor-meteo-concepcion": "MONITOR CONCEPCIÓN",
+    "monitor-meteo-araucania": "MONITOR ARAUCANÍA",
+}
 
 # ---------------------------------------------------------------- fuente 5x7
 FONT = {
@@ -37,6 +51,7 @@ FONT = {
     ">": "01000 00100 00010 00001 00010 00100 01000", "+": "00000 00100 00100 11111 00100 00100 00000", "|": "00100 00100 00100 00100 00100 00100 00100",
     "(": "00010 00100 01000 01000 01000 00100 00010", ")": "01000 00100 00010 00010 00010 00100 01000",
 }
+FONT["_"] = "00000 00000 00000 00000 00000 00000 11111"
 ACCENT = {"Á": "A", "É": "E", "Í": "I", "Ó": "O", "Ú": "U"}
 
 
@@ -302,7 +317,42 @@ def skills():
 
 
 # ---------------------------------------------------------------------- mapa
-ISLANDS = [(600, 120, "MONITOR CONCEPCIÓN")]  # solo proyectos públicos
+def fetch_projects():
+    """Repos públicos de USER con el topic TOPIC, del más antiguo al más nuevo."""
+    req = urllib.request.Request(f"https://api.github.com/users/{USER}/repos?per_page=100&type=owner",
+                                 headers={"Accept": "application/vnd.github+json"})
+    if os.environ.get("GITHUB_TOKEN"):
+        req.add_header("Authorization", f"Bearer {os.environ['GITHUB_TOKEN']}")
+    with urllib.request.urlopen(req, timeout=30) as r:
+        repos = json.load(r)
+    repos = [x for x in repos if TOPIC in x.get("topics", []) and not x["private"] and not x["fork"]]
+    return sorted(repos, key=lambda x: x["created_at"])
+
+
+def label(repo):
+    return LABELS.get(repo["name"], repo["name"].replace("-", " ").upper())
+
+
+def route_path(points):
+    """Curva suave (Catmull-Rom a Bézier) que pasa por todos los puntos."""
+    d = f"M{points[0][0]},{points[0][1]}"
+    for i in range(len(points) - 1):
+        p0, p1, p2 = points[max(i - 1, 0)], points[i], points[i + 1]
+        p3 = points[min(i + 2, len(points) - 1)]
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        d += f" C{c1[0]:.0f},{c1[1]:.0f} {c2[0]:.0f},{c2[1]:.0f} {p2[0]},{p2[1]}"
+    return d
+
+
+def layout(names):
+    """Reparte las islas a lo ancho del mapa, alternando altura."""
+    n = len(names)
+    if n == 1:
+        return [(600, 120, names[0])]
+    x0, x1 = 230, 760
+    return [(round(x0 + (x1 - x0) * i / (n - 1)), 110 if (n - 1 - i) % 2 == 0 else 180, name)
+            for i, name in enumerate(names)]
 
 
 def island(cx, cy, rx, ry):
@@ -318,25 +368,33 @@ def island(cx, cy, rx, ry):
     return "".join(merge(sand, x0, y0, 4, "#e8c77a")) + "".join(merge(land, x0, y0, 4, "#4f9a4a"))
 
 
-def treasure_map():
+def treasure_map(islands):
     W, H = 960, 300
     b = [frame(0, 0, W, H, "#2f7fb5", "#c9a66b", "#5e3b1c")]
     # textura de agua
     for i, (x, y) in enumerate([(60, 60), (250, 200), (470, 250), (700, 40), (520, 110), (900, 230), (180, 250), (780, 190)]):
         b.append(f'<g class="wave" style="animation-delay:{i * 0.35:.2f}s">'
                  + "".join(merge([(0, 1), (1, 0), (2, 0), (3, 1), (4, 1), (5, 0), (6, 0), (7, 1)], x, y, 3, "#8fd3f4")) + "</g>")
-    route = "M70,230 C200,120 320,260 430,190 S540,90 590,112"
+    stops = [(70, 230)] + [(x - 10, y - 8) for x, y, _ in islands]
+    points = [stops[0]]
+    for i, (a, b2) in enumerate(zip(stops, stops[1:])):  # vaivén entre paradas
+        points += [((a[0] + b2[0]) // 2, (a[1] + b2[1]) // 2 + (50 if i % 2 else -50)), b2]
+    route = route_path(points)
+    gap = min((b[0] - a[0] for a, b in zip(islands, islands[1:])), default=999)
     b.append(f'<path d="{route}" fill="none" stroke="#5e3b1c" stroke-width="4" opacity=".35" shape-rendering="auto"/>')
     b.append(f'<path class="route" d="{route}" fill="none" stroke="#fff6d5" stroke-width="4" stroke-dasharray="10 10" shape-rendering="auto"/>')
-    for x, y, name in ISLANDS:
+    for x, y, name in islands:
         b.append(island(x, y, 12, 6))
         b.append(sprite(PALM, PALM_PAL, x - 18, y - 40, 4))
-        tw = text_width(name, 2)
-        b.append(f'<rect x="{x - tw // 2 - 6}" y="{y + 30}" width="{tw + 12}" height="26" fill="#f3e2b3"/>'
-                 f'<rect x="{x - tw // 2 - 6}" y="{y + 52}" width="{tw + 12}" height="4" fill="#c9a66b"/>')
-        b.append(text_rects(name, x - tw // 2, y + 36, 2, "#4a2c14"))
-    # X del tesoro
-    b.append(f'<g class="blink">{text_rects("X", 636, 100, 4, "#d64545", "#5e3b1c")}</g>')
+        sc = 2 if text_width(name, 2) + 24 <= gap else 1  # etiqueta chica si las islas quedan juntas
+        tw = text_width(name, sc)
+        th = 7 * sc + 12
+        b.append(f'<rect x="{x - tw // 2 - 6}" y="{y + 30}" width="{tw + 12}" height="{th}" fill="#f3e2b3"/>'
+                 f'<rect x="{x - tw // 2 - 6}" y="{y + 26 + th}" width="{tw + 12}" height="4" fill="#c9a66b"/>')
+        b.append(text_rects(name, x - tw // 2, y + 36, sc, "#4a2c14"))
+    # X del tesoro en la última isla
+    lx, ly, _ = islands[-1]
+    b.append(f'<g class="blink">{text_rects("X", lx + 36, ly - 20, 4, "#d64545", "#5e3b1c")}</g>')
     # rosa de los vientos
     b.append(text_rects("N", 896, 214, 2, "#fff6d5"))
     b.append('<rect x="900" y="232" width="4" height="36" fill="#fff6d5"/><rect x="884" y="248" width="36" height="4" fill="#fff6d5"/>'
@@ -344,19 +402,45 @@ def treasure_map():
     b.append(text_rects("RUTA DE PROYECTOS", 24, 268, 2, "#fff6d5", "#0e324f"))
     # barquito que recorre la ruta
     small = sprite(SHIP, SHIP_PAL, -36, -44, 2)
-    b.append(f'<g>{small}<animateMotion dur="16s" repeatCount="indefinite" path="{route}"/></g>')
+    b.append(f'<g>{small}<animateMotion dur="{8 + 8 * len(islands)}s" repeatCount="indefinite" path="{route}"/></g>')
     style = """
 .route{animation:dash 1s linear infinite}@keyframes dash{to{stroke-dashoffset:-20}}
 .wave{animation:wave 1.4s steps(2) infinite}@keyframes wave{50%{transform:translateX(6px)}}
 .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:.2}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 """
-    return svg(W, H, "".join(b), style, "Mapa de proyectos: Monitor meteorológico MetGeo Concepción")
+    return svg(W, H, "".join(b), style, "Mapa de proyectos: " + ", ".join(n.capitalize() for *_, n in islands))
+
+
+def readme_block(repos):
+    """Lista de proyectos entre los marcadores PROYECTOS del README."""
+    lines = []
+    for r in repos:
+        line = f"- [{r['name']}]({r['html_url']})"
+        if r.get("description"):
+            line += f": {r['description'].rstrip('.')}."
+        if r.get("homepage"):
+            line += f" En línea en [{re.sub(r'^https?://|/$', '', r['homepage'])}]({r['homepage']})."
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def update_readme(repos):
+    text = README.read_text(encoding="utf-8")
+    new = re.sub(r"(<!-- PROYECTOS:INICIO -->\n).*?(<!-- PROYECTOS:FIN -->)",
+                 lambda m: m.group(1) + readme_block(repos) + "\n" + m.group(2), text, flags=re.S)
+    if new != text:
+        README.write_text(new, encoding="utf-8")
 
 
 if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
-    for name, fn in (("banner", banner), ("skills", skills), ("map", treasure_map)):
+    repos = fetch_projects()
+    if not repos:
+        raise SystemExit(f"Ningún repo público de {USER} tiene el topic '{TOPIC}'")
+    islands = layout([label(r) for r in repos])
+    update_readme(repos)
+    for name, fn in (("banner", banner), ("skills", skills), ("map", lambda: treasure_map(islands))):
         data = fn()
         (OUT / f"{name}.svg").write_text(data, encoding="utf-8")
         print(f"assets/{name}.svg  {len(data) / 1024:.0f} KB")
