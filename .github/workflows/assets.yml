@@ -1,7 +1,7 @@
 name: Actualizar mapa de proyectos
 
-# Regenera assets/*.svg y la lista de proyectos del README a partir de los
-# repos públicos con el topic "mapa-perfil". Solo hace commit si algo cambió.
+# Regenera assets/*.svg y la lista de proyectos del README a partir de la lista
+# PROJECTS de gen_assets.py. Solo hace commit si algo cambió.
 on:
   schedule:
     - cron: "17 */6 * * *"

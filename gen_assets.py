@@ -6,30 +6,41 @@ con CSS dentro del SVG, que GitHub respeta al mostrarlo como <img>.
 
     python3 gen_assets.py
 
-Las islas del mapa y la lista de proyectos del README salen de los repos
-públicos con el topic TOPIC; la Action .github/workflows/assets.yml lo corre sola.
+Las islas del mapa y la lista de proyectos del README salen de PROJECTS (los
+repos de los dashboards son privados, así que no se leen de la API de GitHub);
+la Action .github/workflows/assets.yml lo corre sola.
 
 GitHub muestra los SVG como <img>: un enlace dentro del SVG no funciona. Para que
-cada isla abra su repositorio, el mapa se corta además en franjas verticales
+cada isla abra su dashboard, el mapa se corta además en franjas verticales
 (assets/map_1.svg…, una por isla, con el mismo dibujo y otro viewBox) y el README
 las pone lado a lado, cada una dentro de un <a>. Se ve como un solo mapa.
 """
-import json
 import math
-import os
 import re
-import urllib.request
 from pathlib import Path
 
 OUT = Path(__file__).parent / "assets"
 README = Path(__file__).parent / "README.md"
-USER = "Heszo"
-TOPIC = "mapa-perfil"  # los repos públicos con este topic aparecen en el mapa y en el README
-LABELS = {  # etiqueta del mapa cuando el nombre del repo no alcanza (tildes, abreviaciones)
-    "monitor-meteo-concepcion": "MONITOR CONCEPCIÓN",
-    "monitor-meteo-araucania": "MONITOR ARAUCANÍA",
-    "monitor_coast_coronel": "BOYA CORONEL",
-}
+PROJECTS = [  # una isla por proyecto, en el orden del mapa; "label" es lo que dice la isla
+    {
+        "name": "Monitor Concepción",
+        "label": "MONITOR CONCEPCIÓN",
+        "url": "https://concepcion.metgeo.cl",
+        "description": "Monitor meteorológico del Gran Concepción: observado (VIPNet, METAR) vs. 7 modelos y super-ensamble de 143 miembros",
+    },
+    {
+        "name": "Monitor Araucanía",
+        "label": "MONITOR ARAUCANÍA",
+        "url": "https://araucania.metgeo.cl",
+        "description": "Monitor meteorológico de La Araucanía: 72 estaciones, 7 modelos globales y un super-ensamble de 143 miembros",
+    },
+    {
+        "name": "Boya Coronel",
+        "label": "BOYA CORONEL",
+        "url": "https://coronel.metgeo.cl",
+        "description": "Boya de Puerto Coronel (UdeC/CDOM) vs modelos oceanográficos globales: GLO12, GLORYS, MFWAM, HYCOM ESPC, RTOFS, ECMWF WAM",
+    },
+]
 
 # ---------------------------------------------------------------- fuente 5x7
 FONT = {
@@ -324,20 +335,8 @@ def skills():
 
 
 # ---------------------------------------------------------------------- mapa
-def fetch_projects():
-    """Repos públicos de USER con el topic TOPIC, del más antiguo al más nuevo."""
-    req = urllib.request.Request(f"https://api.github.com/users/{USER}/repos?per_page=100&type=owner",
-                                 headers={"Accept": "application/vnd.github+json"})
-    if os.environ.get("GITHUB_TOKEN"):
-        req.add_header("Authorization", f"Bearer {os.environ['GITHUB_TOKEN']}")
-    with urllib.request.urlopen(req, timeout=30) as r:
-        repos = json.load(r)
-    repos = [x for x in repos if TOPIC in x.get("topics", []) and not x["private"] and not x["fork"]]
-    return sorted(repos, key=lambda x: x["created_at"])
-
-
-def label(repo):
-    return LABELS.get(repo["name"], repo["name"].replace("-", " ").upper())
+def label(project):
+    return project["label"]
 
 
 def route_path(points):
@@ -439,11 +438,11 @@ def map_slices(islands, body, style):
 
 
 def map_block(repos, slices):
-    """Las franjas lado a lado, cada una enlazada a su monitor en línea, o a su repo si no tiene
-    (sin espacios entre etiquetas: no deja huecos)."""
+    """Las franjas lado a lado, cada una enlazada a su dashboard (sin espacios entre
+    etiquetas: no deja huecos)."""
     links = "".join(
-        f'<a href="{r.get("homepage") or r["html_url"]}"><img src="assets/map_{i}.svg" width="{math.floor(10000 * w / MAP_W) / 100 - 0.01:.2f}%" '
-        f'alt="Isla {label(r).capitalize()}: abre {"el monitor" if r.get("homepage") else "el repositorio"} {r["name"]}"></a>'
+        f'<a href="{r["url"]}"><img src="assets/map_{i}.svg" width="{math.floor(10000 * w / MAP_W) / 100 - 0.01:.2f}%" '
+        f'alt="Isla {r["name"]}: abre {r["url"].removeprefix("https://")}"></a>'
         for i, (r, (_, w, _)) in enumerate(zip(repos, slices), start=1))
     return f'<p align="center">{links}</p>'
 
@@ -452,12 +451,8 @@ def readme_block(repos):
     """Lista de proyectos entre los marcadores PROYECTOS del README."""
     lines = []
     for r in repos:
-        line = f"- [{r['name']}]({r['html_url']})"
-        if r.get("description"):
-            line += f": {r['description'].rstrip('.')}."
-        if r.get("homepage"):
-            line += f" En línea en [{re.sub(r'^https?://|/$', '', r['homepage'])}]({r['homepage']})."
-        lines.append(line)
+        lines.append(f"- [{r['name']}]({r['url']}): {r['description'].rstrip('.')}. "
+                     f"En línea en [{r['url'].removeprefix('https://')}]({r['url']}).")
     return "\n".join(lines)
 
 
@@ -474,9 +469,7 @@ def update_readme(repos, mapa=None):
 
 if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
-    repos = fetch_projects()
-    if not repos:
-        raise SystemExit(f"Ningún repo público de {USER} tiene el topic '{TOPIC}'")
+    repos = PROJECTS
     islands = layout([label(r) for r in repos])
     body, style, title = treasure_map(islands)
     slices = map_slices(islands, body, style)
