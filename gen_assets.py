@@ -8,8 +8,14 @@ con CSS dentro del SVG, que GitHub respeta al mostrarlo como <img>.
 
 Las islas del mapa y la lista de proyectos del README salen de los repos
 públicos con el topic TOPIC; la Action .github/workflows/assets.yml lo corre sola.
+
+GitHub muestra los SVG como <img>: un enlace dentro del SVG no funciona. Para que
+cada isla abra su repositorio, el mapa se corta además en franjas verticales
+(assets/map_1.svg…, una por isla, con el mismo dibujo y otro viewBox) y el README
+las pone lado a lado, cada una dentro de un <a>. Se ve como un solo mapa.
 """
 import json
+import math
 import os
 import re
 import urllib.request
@@ -22,6 +28,7 @@ TOPIC = "mapa-perfil"  # los repos públicos con este topic aparecen en el mapa 
 LABELS = {  # etiqueta del mapa cuando el nombre del repo no alcanza (tildes, abreviaciones)
     "monitor-meteo-concepcion": "MONITOR CONCEPCIÓN",
     "monitor-meteo-araucania": "MONITOR ARAUCANÍA",
+    "monitor_coast_coronel": "BOYA CORONEL",
 }
 
 # ---------------------------------------------------------------- fuente 5x7
@@ -368,8 +375,12 @@ def island(cx, cy, rx, ry):
     return "".join(merge(sand, x0, y0, 4, "#e8c77a")) + "".join(merge(land, x0, y0, 4, "#4f9a4a"))
 
 
+MAP_W, MAP_H = 960, 300
+
+
 def treasure_map(islands):
-    W, H = 960, 300
+    """El mapa completo: (cuerpo, estilo, título)."""
+    W, H = MAP_W, MAP_H
     b = [frame(0, 0, W, H, "#2f7fb5", "#c9a66b", "#5e3b1c")]
     # textura de agua
     for i, (x, y) in enumerate([(60, 60), (250, 200), (470, 250), (700, 40), (520, 110), (900, 230), (180, 250), (780, 190)]):
@@ -409,7 +420,31 @@ def treasure_map(islands):
 .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:.2}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 """
-    return svg(W, H, "".join(b), style, "Mapa de proyectos: " + ", ".join(n.capitalize() for *_, n in islands))
+    return "".join(b), style, "Mapa de proyectos: " + ", ".join(n.capitalize() for *_, n in islands)
+
+
+def map_slices(islands, body, style):
+    """Franjas verticales del mapa, una por isla, cortadas a medio camino entre islas vecinas.
+    Devuelve [(x0, ancho, svg)]."""
+    xs = [x for x, _, _ in islands]
+    cuts = [0] + [(a + b) // 2 for a, b in zip(xs, xs[1:])] + [MAP_W]
+    out = []
+    for (x0, x1), (_, _, name) in zip(zip(cuts, cuts[1:]), islands):
+        w = x1 - x0
+        data = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0} 0 {w} {MAP_H}" width="{w}" height="{MAP_H}" '
+                f'shape-rendering="crispEdges" role="img" aria-label="Isla {name.capitalize()}">'
+                f"<title>{name.capitalize()}</title><style>{style}</style>{body}</svg>\n")
+        out.append((x0, w, data))
+    return out
+
+
+def map_block(repos, slices):
+    """Las franjas lado a lado, cada una enlazada a su repo (sin espacios entre etiquetas: no deja huecos)."""
+    links = "".join(
+        f'<a href="{r["html_url"]}"><img src="assets/map_{i}.svg" width="{math.floor(10000 * w / MAP_W) / 100 - 0.01:.2f}%" '
+        f'alt="Isla {label(r).capitalize()}: abre el repositorio {r["name"]}"></a>'
+        for i, (r, (_, w, _)) in enumerate(zip(repos, slices), start=1))
+    return f'<p align="center">{links}</p>'
 
 
 def readme_block(repos):
@@ -425,10 +460,13 @@ def readme_block(repos):
     return "\n".join(lines)
 
 
-def update_readme(repos):
+def update_readme(repos, mapa=None):
     text = README.read_text(encoding="utf-8")
     new = re.sub(r"(<!-- PROYECTOS:INICIO -->\n).*?(<!-- PROYECTOS:FIN -->)",
                  lambda m: m.group(1) + readme_block(repos) + "\n" + m.group(2), text, flags=re.S)
+    if mapa:
+        new = re.sub(r"(<!-- MAPA:INICIO -->\n).*?(<!-- MAPA:FIN -->)",
+                     lambda m: m.group(1) + mapa + "\n" + m.group(2), new, flags=re.S)
     if new != text:
         README.write_text(new, encoding="utf-8")
 
@@ -439,8 +477,13 @@ if __name__ == "__main__":
     if not repos:
         raise SystemExit(f"Ningún repo público de {USER} tiene el topic '{TOPIC}'")
     islands = layout([label(r) for r in repos])
-    update_readme(repos)
-    for name, fn in (("banner", banner), ("skills", skills), ("map", lambda: treasure_map(islands))):
-        data = fn()
+    body, style, title = treasure_map(islands)
+    slices = map_slices(islands, body, style)
+    update_readme(repos, map_block(repos, slices))
+    for old in OUT.glob("map_*.svg"):  # franjas de islas que ya no están
+        old.unlink()
+    files = [("banner", banner()), ("skills", skills()), ("map", svg(MAP_W, MAP_H, body, style, title))]
+    files += [(f"map_{i}", data) for i, (_, _, data) in enumerate(slices, start=1)]
+    for name, data in files:
         (OUT / f"{name}.svg").write_text(data, encoding="utf-8")
         print(f"assets/{name}.svg  {len(data) / 1024:.0f} KB")

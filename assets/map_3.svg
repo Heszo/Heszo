@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" width="960" height="300" shape-rendering="crispEdges" role="img" aria-label="Mapa de proyectos: Monitor concepción, Monitor araucanía, Boya coronel"><title>Mapa de proyectos: Monitor concepción, Monitor araucanía, Boya coronel</title><style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="627 0 333 300" width="333" height="300" shape-rendering="crispEdges" role="img" aria-label="Isla Boya coronel"><title>Boya coronel</title><style>
 .route{animation:dash 1s linear infinite}@keyframes dash{to{stroke-dashoffset:-20}}
 .wave{animation:wave 1.4s steps(2) infinite}@keyframes wave{50%{transform:translateX(6px)}}
 .blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:.2}}
