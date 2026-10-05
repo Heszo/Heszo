@@ -11,10 +11,10 @@ Para programar uso Claude Code y OpenCode, con desarrollo guiado por especificac
 </p>
 
 <!-- MAPA:INICIO -->
-<p align="center"><a href="https://github.com/Heszo/monitor-meteo-concepcion"><img src="assets/map_1.svg" width="37.69%" alt="Isla Monitor concepción: abre el repositorio monitor-meteo-concepcion"></a><a href="https://github.com/Heszo/monitor-meteo-araucania"><img src="assets/map_2.svg" width="27.59%" alt="Isla Monitor araucanía: abre el repositorio monitor-meteo-araucania"></a><a href="https://github.com/Heszo/monitor_coast_coronel"><img src="assets/map_3.svg" width="34.67%" alt="Isla Boya coronel: abre el repositorio monitor_coast_coronel"></a></p>
+<p align="center"><a href="https://metgeo-concepcion.streamlit.app/"><img src="assets/map_1.svg" width="37.69%" alt="Isla Monitor concepción: abre el monitor monitor-meteo-concepcion"></a><a href="https://metgeo-araucania.streamlit.app/"><img src="assets/map_2.svg" width="27.59%" alt="Isla Monitor araucanía: abre el monitor monitor-meteo-araucania"></a><a href="https://metgeo-coronel.streamlit.app/"><img src="assets/map_3.svg" width="34.67%" alt="Isla Boya coronel: abre el monitor monitor_coast_coronel"></a></p>
 <!-- MAPA:FIN -->
 
-Los proyectos del mapa (clic en una isla para abrir su repositorio), que se actualizan con GitHub Actions:
+Los proyectos del mapa (clic en una isla para abrir su monitor), que se actualizan con GitHub Actions:
 
 <!-- PROYECTOS:INICIO -->
 - [monitor-meteo-concepcion](https://github.com/Heszo/monitor-meteo-concepcion): Monitor meteorológico del Gran Concepción: observado (VIPNet, METAR) vs. 7 modelos y super-ensamble de 143 miembros. En línea en [metgeo-concepcion.streamlit.app](https://metgeo-concepcion.streamlit.app/).

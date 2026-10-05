@@ -439,10 +439,11 @@ def map_slices(islands, body, style):
 
 
 def map_block(repos, slices):
-    """Las franjas lado a lado, cada una enlazada a su repo (sin espacios entre etiquetas: no deja huecos)."""
+    """Las franjas lado a lado, cada una enlazada a su monitor en línea, o a su repo si no tiene
+    (sin espacios entre etiquetas: no deja huecos)."""
     links = "".join(
-        f'<a href="{r["html_url"]}"><img src="assets/map_{i}.svg" width="{math.floor(10000 * w / MAP_W) / 100 - 0.01:.2f}%" '
-        f'alt="Isla {label(r).capitalize()}: abre el repositorio {r["name"]}"></a>'
+        f'<a href="{r.get("homepage") or r["html_url"]}"><img src="assets/map_{i}.svg" width="{math.floor(10000 * w / MAP_W) / 100 - 0.01:.2f}%" '
+        f'alt="Isla {label(r).capitalize()}: abre {"el monitor" if r.get("homepage") else "el repositorio"} {r["name"]}"></a>'
         for i, (r, (_, w, _)) in enumerate(zip(repos, slices), start=1))
     return f'<p align="center">{links}</p>'
 
