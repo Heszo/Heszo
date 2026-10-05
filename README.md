@@ -19,7 +19,7 @@ Los proyectos del mapa (clic en una isla para abrir su repositorio), que se actu
 <!-- PROYECTOS:INICIO -->
 - [monitor-meteo-concepcion](https://github.com/Heszo/monitor-meteo-concepcion): Monitor meteorológico del Gran Concepción: observado (VIPNet, METAR) vs. 7 modelos y super-ensamble de 143 miembros. En línea en [metgeo-concepcion.streamlit.app](https://metgeo-concepcion.streamlit.app/).
 - [monitor-meteo-araucania](https://github.com/Heszo/monitor-meteo-araucania): Monitor meteorológico de La Araucanía: 72 estaciones, 7 modelos globales y un super-ensamble de 143 miembros. En línea en [metgeo-araucania.streamlit.app](https://metgeo-araucania.streamlit.app/).
-- [monitor_coast_coronel](https://github.com/Heszo/monitor_coast_coronel): Boya de Puerto Coronel (UdeC/CDOM) vs modelos oceanográficos globales: GLO12, GLORYS, MFWAM, HYCOM ESPC, RTOFS, ECMWF WAM. Streamlit.
+- [monitor_coast_coronel](https://github.com/Heszo/monitor_coast_coronel): Boya de Puerto Coronel (UdeC/CDOM) vs modelos oceanográficos globales: GLO12, GLORYS, MFWAM, HYCOM ESPC, RTOFS, ECMWF WAM. Streamlit. En línea en [metgeo-coronel.streamlit.app](https://metgeo-coronel.streamlit.app/).
 <!-- PROYECTOS:FIN -->
 
 Contacto: brunobastian.herrera@gmail.com. MetGeo está en [LinkedIn](https://www.linkedin.com/company/metgeo-spa/) y en [Instagram](https://www.instagram.com/metgeo.spa/).
